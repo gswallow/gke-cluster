@@ -2,6 +2,14 @@ resource "random_id" "kms" {
   byte_length = 3
 }
 
+resource "google_project_iam_member" "k8s_developer" {
+  provider = "google-beta"
+  count    = length(var.k8s_developers)
+  role     = "roles/container.developer"
+  project  = data.google_project.project.project_id
+  member   = element(var.k8s_developers, count.index)
+}
+
 resource "google_project_iam_member" "kms_encrypter_decrypter" {
   provider   = "google-beta"
   project    = data.google_project.project.project_id
@@ -19,10 +27,14 @@ resource "google_kms_crypto_key" "etcd" {
   key_ring        = google_kms_key_ring.etcd.id
   rotation_period = "2592000s"
 
+  depends_on = [ google_project_iam_member.kms_encrypter_decrypter ]
+  
   lifecycle {
     prevent_destroy = false
   }
 }
+
+
 
 # impersonate_service_account is not yet released, so use a ref spec.
 module "kubernetes-engine" {
@@ -68,6 +80,4 @@ module "kubernetes-engine" {
   service_account                    = var.service_account
   stub_domains                       = var.stub_domains
   upstream_nameservers               = var.upstream_nameservers
-
-  depends_on = [ google_project_iam_member.kms_encrypter_decrypter ]
 }

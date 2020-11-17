@@ -235,6 +235,12 @@ variable "upstream_nameservers" {
   default     = []
 }
 
+variable "k8s_developers" {
+  description = "List of Google user accounts (or groups) that may deploy to the GKE cluster"
+  type = list(string)
+  default = []
+}
+
 locals {
   labels = merge(
     {
