@@ -2,6 +2,13 @@ resource "random_id" "kms" {
   byte_length = 3
 }
 
+resource "google_project_iam_member" "kms_encrypter_decrypter" {
+  provider   = "google-beta"
+  project    = data.google_project.project.project_id
+  role       = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member     = "serviceAccount:service-${data.google_project.project.number}@container-engine-robot.iam.gserviceaccount.com"
+}
+
 resource "google_kms_key_ring" "etcd" {
   name     = "gke-${var.cluster_name}-${random_id.kms.hex}"
   location = var.gcp_region
@@ -37,11 +44,10 @@ module "kubernetes-engine" {
   cluster_resource_labels     = var.labels
   create_service_account      = var.create_service_account
   impersonate_service_account = var.terraform_service_account
-  # I don't know why but this isn't working.  Fix.
-  // database_encryption = [{
-  //   state    = "DECRYPTED"
-  //   key_name = google_kms_crypto_key.etcd.id
-  // }]
+  database_encryption = [{
+    state    = "ENCRYPTED"
+    key_name = google_kms_crypto_key.etcd.id
+  }]
   default_max_pods_per_node          = var.default_max_pods_per_node
   enable_binary_authorization        = var.enable_binary_authorization
   enable_network_egress_export       = var.enable_network_egress_export
@@ -62,4 +68,6 @@ module "kubernetes-engine" {
   service_account                    = var.service_account
   stub_domains                       = var.stub_domains
   upstream_nameservers               = var.upstream_nameservers
+
+  depends_on = [ google_project_iam_member.kms_encrypter_decrypter ]
 }

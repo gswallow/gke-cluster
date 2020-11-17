@@ -5,6 +5,10 @@ data "google_compute_zones" "available" {
   project = var.project_id
 }
 
+data "google_project" "project" {
+  project_id = var.project_id
+}
+
 data "google_project" "shared_vpc_host" {
   project_id = var.network_project_id
 }
