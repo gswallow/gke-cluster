@@ -27,10 +27,33 @@ resource "google_kms_crypto_key" "etcd" {
   key_ring        = google_kms_key_ring.etcd.id
   rotation_period = "2592000s"
 
-  depends_on = [ google_project_iam_member.kms_encrypter_decrypter ]
+  depends_on = [ google_project_iam_member.kms_encrypter_decrypter, google_bigquery_dataset.k8s_resource_usage ]
   
   lifecycle {
     prevent_destroy = false
+  }
+}
+
+resource "google_bigquery_dataset" "k8s_resource_usage" {
+  count                       = var.enable_resource_consumption_export ? 1 : 0
+  dataset_id                  = local.resource_usage_export_dataset_id
+  friendly_name               = local.resource_usage_export_dataset_id
+  description                 = "Kubernetes resource usage for the ${var.cluster_name} GKE cluster"
+  default_table_expiration_ms = 31209600000
+  delete_contents_on_destroy  = true
+
+  labels = {
+    env = var.project_id
+  }
+
+  access {
+    role          = "OWNER"
+    special_group = "projectOwners"
+  }
+
+  access {
+    role   = "READER"
+    domain = var.org_domain
   }
 }
 
@@ -84,6 +107,7 @@ module "kubernetes-engine" {
   registry_project_id                = var.registry_project_id
   release_channel                    = var.release_channel
   remove_default_node_pool           = var.remove_default_node_pool
+  resource_usage_export_dataset_id   = local.resource_usage_export_dataset_id
   service_account                    = var.service_account
   stub_domains                       = var.stub_domains
   upstream_nameservers               = var.upstream_nameservers

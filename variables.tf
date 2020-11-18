@@ -100,7 +100,7 @@ variable "cluster_autoscaling" {
 variable "create_service_account" {
   description = "Create a service account to run nodes"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "default_max_pods_per_node" {
@@ -325,6 +325,7 @@ variable "k8s_developers" {
 }
 
 locals {
+  resource_usage_export_dataset_id = replace("${var.project_id}-${var.cluster_name}-usage", "-", "_")
   labels = merge(
     {
       OrganizationId = var.org_domain
