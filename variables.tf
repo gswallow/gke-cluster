@@ -106,7 +106,7 @@ variable "create_service_account" {
 variable "default_max_pods_per_node" {
   description = "The maximum number of pods to run per node."
   type        = number
-  default     = 16
+  default     = 110
 }
 
 variable "enable_binary_authorization" {
@@ -154,7 +154,7 @@ variable "enable_vertical_pod_autoscaling" {
 variable "firewall_inbound_ports" {
   description = "List of TCP ports for admission/webhook controllers"
   type        = list(string)
-  default     = []
+  default     = ["6443", "8443", "9443", "15017"]
 }
 
 variable "gce_pd_csi_driver" {

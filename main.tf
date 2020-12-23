@@ -90,6 +90,7 @@ module "kubernetes-engine" {
   enable_network_egress_export       = var.enable_network_egress_export
   enable_resource_consumption_export = var.enable_resource_consumption_export
   enable_shielded_nodes              = var.enable_shielded_nodes
+  firewall_inbound_ports             = var.firewall_inbound_ports
   gce_pd_csi_driver                  = var.gce_pd_csi_driver
   grant_registry_access              = var.grant_registry_access
   horizontal_pod_autoscaling         = var.horizontal_pod_autoscaling
